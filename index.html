@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Device Tracker</title>
+</head>
+<body>
+  <h2>Device Info Logger</h2>
+  <p>Click the button below to send your device info.</p>
+  <button onclick="logInfo()">Ping My Device</button>
+  <pre id="result">Waiting...</pre>
+
+  <script>
+    async function logInfo() {
+      document.getElementById("result").textContent = "Collecting info...";
+      
+      const ipData = await fetch('https://api.ipify.org?format=json').then(res => res.json());
+      const userAgent = navigator.userAgent;
+      const platform = navigator.platform;
+      
+      const info = {
+        ip: ipData.ip,
+        userAgent: userAgent,
+        platform: platform,
+        time: new Date().toLocaleString()
+      };
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          info.latitude = position.coords.latitude;
+          info.longitude = position.coords.longitude;
+          sendData(info);
+        }, () => {
+          sendData(info);
+        });
+      } else {
+        sendData(info);
+      }
+    }
+
+    function sendData(data) {
+      document.getElementById("result").textContent = JSON.stringify(data, null, 2);
+      
+      // Replace with your webhook URL or remove this fetch to disable sending
+      fetch("https://webhook.site/your-unique-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      }).catch(() => {
+        console.log("Failed to send data");
+      });
+    }
+  </script>
+</body>
+</html>
